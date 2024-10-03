@@ -4,8 +4,8 @@
 
 #include "import.h"
 
-#define PT_PERM_UP  0
-#define PT_PERM_PTU (PTE_P | PTE_W | PTE_U)
+#define PT_PERM_UP  0   //no permission bujhay
+#define PT_PERM_PTU (PTE_P | PTE_W | PTE_U)     //page present,writable,user has access
 
 /**
  * Page directory pool for NUM_IDS processes.
@@ -21,7 +21,7 @@
  * in fact any 32-bit type is fine, so feel free to change it if it makes more
  * sense to you with a different type.
  */
-char *PDirPool[NUM_IDS][1024] gcc_aligned(PAGESIZE);
+char *PDirPool[NUM_IDS][1024] gcc_aligned(PAGESIZE);   //array of pointers(page directory of a process) who are pointing to page tables address
 
 /**
  * In mCertiKOS, we use identity page table mappings for the kernel memory.
@@ -36,7 +36,7 @@ unsigned int IDPTbl[1024][1024] gcc_aligned(PAGESIZE);
 void set_pdir_base(unsigned int index)
 {
     // TODO
-    set_cr3((unsigned int **)PDirPool[index]);
+    set_cr3((unsigned int **)PDirPool[index]);   //sets the address of a page directory
 }
 
 // Returns the page directory entry # [pde_index] of the process # [proc_index].
@@ -44,7 +44,7 @@ void set_pdir_base(unsigned int index)
 unsigned int get_pdir_entry(unsigned int proc_index, unsigned int pde_index)
 {
     // TODO
-    return (unsigned int)PDirPool[proc_index][pde_index];
+    return (unsigned int)PDirPool[proc_index][pde_index];   //finds the page table if its there (mapped)
 }
 
 // Sets the specified page directory entry with the start address of physical
@@ -54,8 +54,12 @@ void set_pdir_entry(unsigned int proc_index, unsigned int pde_index,
                     unsigned int page_index)
 {
     // TODO
-    unsigned int value = (page_index << 12) | PT_PERM_PTU; 
+    unsigned int value = (page_index << 12) | PT_PERM_PTU;   
+    
+    //adds permission of the page in lower bits and address of the page in higher bits
     PDirPool[proc_index][pde_index] = (char *)value;
+
+    //sets the value of page directory entry (mapped page table) as a character pointer
 }
 
 // Sets the page directory entry # [pde_index] for the process # [proc_index]
@@ -65,7 +69,7 @@ void set_pdir_entry(unsigned int proc_index, unsigned int pde_index,
 void set_pdir_entry_identity(unsigned int proc_index, unsigned int pde_index)
 {
     // TODO
-    unsigned int value = (unsigned int)IDPTbl[pde_index];
+    unsigned int value = (unsigned int)IDPTbl[pde_index];   //instead of converting to physical address for the page, we take it from this table as its already mapped by kernel
     value |= PT_PERM_PTU;
     PDirPool[proc_index][pde_index] = (char *)value;
 }
