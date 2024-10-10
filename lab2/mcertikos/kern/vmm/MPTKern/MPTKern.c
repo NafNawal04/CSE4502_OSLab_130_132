@@ -10,10 +10,17 @@
 void pdir_init_kern(unsigned int mbi_addr)
 {
     // TODO: Define your local variables here.
+    unsigned int pdir_index;
 
     pdir_init(mbi_addr);
 
     //TODO
+    // Loop through all the page directories and set the page table entries as the identity map
+    // for process 0
+    for (pdir_index = 0; pdir_index < 1024; pdir_index++)
+    {
+        set_pdir_entry_identity(0, pdir_index);
+    }
 }
 
 /**
@@ -28,7 +35,19 @@ unsigned int map_page(unsigned int proc_index, unsigned int vaddr,
                       unsigned int page_index, unsigned int perm)
 {
     // TODO
-    return 0;
+    unsigned int pde = get_pdir_entry_by_va(proc_index, vaddr);
+    unsigned int new_page_index;
+
+    if((pde & PTE_P) == 0) {
+        new_page_index = alloc_ptbl(proc_index, vaddr);
+        
+        if(new_page_index == 0) return MagicNumber;
+    }
+    set_ptbl_entry_by_va(proc_index, vaddr, page_index, perm);
+    pde = get_pdir_entry_by_va(proc_index, vaddr);
+
+
+    return pde >> 12; // removing the permission bits
 }
 
 /**
@@ -42,5 +61,11 @@ unsigned int map_page(unsigned int proc_index, unsigned int vaddr,
 unsigned int unmap_page(unsigned int proc_index, unsigned int vaddr)
 {
     // TODO
-    return 0;
+    unsigned int pte = get_ptbl_entry_by_va(proc_index, vaddr);
+    // if pte is 0 then the mapping no longer exists
+    if(pte != 0) {
+        rmv_ptbl_entry_by_va(proc_index, vaddr);
+    }
+    
+    return get_ptbl_entry_by_va(proc_index, vaddr);
 }

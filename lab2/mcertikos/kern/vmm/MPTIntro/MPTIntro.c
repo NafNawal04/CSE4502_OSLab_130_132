@@ -88,6 +88,10 @@ unsigned int get_ptbl_entry(unsigned int proc_index, unsigned int pde_index,
                             unsigned int pte_index)
 {
     // TODO
+    unsigned int pte_addr = (unsigned int )PDirPool[proc_index][pde_index];
+    pte_addr &= 0xfffff000; //remove perm bits
+    pte_addr += pte_index << 2;
+    return *(unsigned int *)pte_addr; 
   
     
 }
@@ -99,6 +103,15 @@ void set_ptbl_entry(unsigned int proc_index, unsigned int pde_index,
                     unsigned int perm)
 {
     // TODO
+    unsigned int* pte;
+    unsigned int pte_addr =  (unsigned int )PDirPool[proc_index][pde_index];
+    pte_addr &= 0xfffff000;//rmove perm bits
+    pte_addr += pte_index << 2;
+
+    pte = (unsigned int *)pte_addr;
+    *pte &= 0x00000000;
+    *pte = page_index << 12;
+    *pte |= (perm & 0x00000fff);
     
 }
 
@@ -108,6 +121,8 @@ void set_ptbl_entry_identity(unsigned int pde_index, unsigned int pte_index,
                              unsigned int perm)
 {
     // TODO
+    IDPTbl[pde_index][pte_index] = ((pde_index << 10) + pte_index) << 12;
+    IDPTbl[pde_index][pte_index] |= perm;
   
 }
 
@@ -117,5 +132,11 @@ void rmv_ptbl_entry(unsigned int proc_index, unsigned int pde_index,
                     unsigned int pte_index)
 {
     // TODO
+    unsigned int * pte;
+    unsigned int pte_addr = (unsigned int)PDirPool[proc_index][pde_index];
+    pte_addr &= 0xfffff000;//remove perm bits
+    pte_addr += pte_index << 2;
+    pte = (unsigned int *)pte_addr;
+    *pte &= 0x00000000;
     
 }
